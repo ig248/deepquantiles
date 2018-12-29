@@ -4,7 +4,7 @@ from keras.models import Model
 from keras.layers import Input, Dense
 from keras.optimizers import Adam
 
-from .losses import quantile_loss
+from .losses import keras_quantile_loss
 
 
 class MultiQuantileRegressor(BaseEstimator):
@@ -61,7 +61,7 @@ class MultiQuantileRegressor(BaseEstimator):
 
         model.compile(
             optimizer=Adam(lr=self.lr),
-            loss=[quantile_loss(q) for q in self.quantiles]
+            loss=[keras_quantile_loss(q) for q in self.quantiles]
         )
 
         return model

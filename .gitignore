@@ -110,3 +110,5 @@ venv.bak/
 .mypy_cache/
 
 \.DS_Store
+
+notebooks/catboost_info/
