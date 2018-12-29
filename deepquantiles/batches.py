@@ -1,19 +1,43 @@
+import numpy as np
 from keras.utils import Sequence
 
 
-class ArrayBatchGenerator(Sequence):
+class XYQZBatchGenerator(Sequence):
     """Generate batches from X, y arrays.
 
-    Mainly used for testing `fit_generator` and related functions
+    Returns batches of ([X, y, q], z), where
+    q are uniform random numbers from [0, 1] and
+    z are zeros of the same shape as y.
     """
+    valid_q_modes = ['point', 'batch', 'const']
 
-    def __init__(self, x, y, batch_size=4):
+    @classmethod
+    def check_q_mode(cls, q_mode):
+        if q_mode not in cls.valid_q_modes:
+            raise ValueError(
+                f'q_mode must be one of {cls.valid_q_modes}'
+            )
+
+    def __init__(
+        self, x, y,
+        batch_size=4, q_mode='point',
+        shuffle_points=True,
+    ):
         self.x = x
         self.y = y
+        if len(self.x.shape) == 1:
+            self.x = self.x.reshape((-1, 1))
         if len(self.y.shape) == 1:
             self.y = self.y.reshape((-1, 1))
-        assert self.x.shape[0] == self.y.shape[0]
+        if self.x.shape[0] != self.y.shape[0]:
+            raise ValueError('X and y must be same length.')
         self.batch_size = batch_size
+        self.check_q_mode(q_mode)
+        self.q_mode = q_mode
+        if q_mode == 'const':
+            self.q = np.random.rand(*self.y.shape)
+        self.shuffle_points = shuffle_points
+        self.indices = np.arange(self.x.shape[0])
         self.n_rows = self.x.shape[0]
 
     def __len__(self):
@@ -25,4 +49,20 @@ class ArrayBatchGenerator(Sequence):
         item = item % len(self)
         start_row = item * self.batch_size
         end_row = min((item + 1) * self.batch_size, self.n_rows)
-        return self.x[start_row:end_row, :], self.y[start_row:end_row, :]
+        inds = self.indices[start_row:end_row]
+        x = self.x[inds, :]
+        y = self.y[inds, :]
+        z = np.zeros(y.shape)
+        if self.q_mode == 'const':
+            q = self.q[inds, :]
+        elif self.q_mode == 'batch':
+            q = z + np.random.rand()
+        elif self.q_mode == 'point':
+            q = np.random.rand(*z.shape)
+        else:
+            self.check_q_mode()
+        return [x, y, q], z
+
+    def on_epoch_end(self):
+        if self.shuffle_points:
+            np.random.shuffle(self.indices)
