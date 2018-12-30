@@ -1,3 +1,4 @@
+import numpy as np
 from sklearn.base import BaseEstimator
 
 from keras.models import Model
@@ -18,7 +19,8 @@ class CDFRegressor(BaseEstimator):
         epochs=10,
         batch_size=100,
         q_mode='const',
-        shuffle_points=True
+        shuffle_points=True,
+        quantiles=[0.5]
     ):
         self._model_instance = None
         self.hidden_units = hidden_units
@@ -32,6 +34,7 @@ class CDFRegressor(BaseEstimator):
             )
         self.q_mode = q_mode
         self.shuffle_points = shuffle_points
+        self.quantiles = quantiles
 
     def _model(self):
         input_features = Input(
@@ -113,8 +116,15 @@ class CDFRegressor(BaseEstimator):
             **fit_kwargs
         )
 
-    def predict(self, X, q):
-        return self.model['quantile'].predict([X, q])
+    def predict(self, X, quantiles=None):
+        if quantiles is None:
+            quantiles = self.quantiles
+        y = []
+        for quantile in quantiles:
+            q = quantile + np.zeros((X.shape[0], 1))
+            pred = self.model['quantile'].predict([X, q])
+            y.append(pred)
+        return np.hstack(y)
 
     def sample(self, X, num_samples=10, num_quantiles=5):
         quantiles = np.linspace(0, 1, num=num_quantiles)

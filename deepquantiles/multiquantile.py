@@ -1,3 +1,4 @@
+import numpy as np
 from sklearn.base import BaseEstimator
 
 from keras.models import Model
@@ -88,4 +89,4 @@ class MultiQuantileRegressor(BaseEstimator):
         )
 
     def predict(self, X):
-        return self.model.predict(X)
+        return np.hstack(self.model.predict(X))
