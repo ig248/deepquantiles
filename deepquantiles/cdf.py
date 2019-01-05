@@ -163,7 +163,10 @@ class CDFRegressor(BaseEstimator):
             quantiles = self.quantiles
         X_tiled = np.repeat(X, len(quantiles), axis=1).reshape(-1, 1)
         q_tiled = np.tile(quantiles, X.shape[0])
-        pred = self.model['quantile'].predict([X_tiled, q_tiled], **predict_kwargs)
+        pred = self.model['quantile'].predict(
+            [X_tiled, q_tiled],
+            **predict_kwargs
+        )
         pred = pred.reshape(X.shape[0], len(quantiles))
         return pred
 
