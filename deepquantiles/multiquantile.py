@@ -48,12 +48,12 @@ class MultiQuantileRegressor(BaseEstimator):
                 Dense(
                     units,
                     activation=self.activation, 
-                    name=f'quantile_{q}_{idx}'
+                    name=f'q_{q}_dense_{idx}'
                 )(output)
                 for q, output in zip(self.quantiles, outputs)
             ]
         outputs = [
-            Dense(1, name=f'quantile_{q}_out')(output)
+            Dense(1, name=f'q_{q}_out')(output)
             for q, output in zip(self.quantiles, outputs)
         ]
         model = Model(
