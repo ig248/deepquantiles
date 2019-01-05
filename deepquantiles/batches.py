@@ -22,6 +22,7 @@ class XYQZBatchGenerator(Sequence):
         self, x, y,
         batch_size=4, q_mode='point',
         shuffle_points=True,
+        q_scaling=None
     ):
         self.x = x
         self.y = y
@@ -37,6 +38,7 @@ class XYQZBatchGenerator(Sequence):
         if q_mode == 'const':
             self.q = np.random.rand(*self.y.shape)
         self.shuffle_points = shuffle_points
+        self.q_scaling = q_scaling
         self.indices = np.arange(self.x.shape[0])
         self.n_rows = self.x.shape[0]
 
@@ -61,6 +63,8 @@ class XYQZBatchGenerator(Sequence):
             q = np.random.rand(*z.shape)
         else:
             self.check_q_mode()
+        if self.q_scaling:
+            q = self.q_scaling(q)
         return [x, y, q], z
 
     def on_epoch_end(self):
