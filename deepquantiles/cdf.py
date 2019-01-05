@@ -135,7 +135,7 @@ class CDFRegressor(BaseEstimator):
         shuffle_points = fit_kwargs.pop('shuffle_points')
         ada_num_quantiles = fit_kwargs.pop('ada_num_quantiles')
 
-        gen = XYQZBatchGenerator(
+        self.gen_ = XYQZBatchGenerator(
             X, y,
             batch_size=batch_size,
             q_mode=q_mode,
@@ -149,23 +149,32 @@ class CDFRegressor(BaseEstimator):
         self.model['quantile'].predict([[0], [0]])
 
         self.model['loss'].fit_generator(
-            gen,
+            self.gen_,
             **fit_kwargs
         )
 
-    def predict(self, X, quantiles=None):
+    def predict(self, X, quantiles=None, **kwargs):
+        predict_kwargs = dict(
+            batch_size=self.batch_size,
+        )
+        predict_kwargs.update(kwargs)
+
         if quantiles is None:
             quantiles = self.quantiles
-        y = []
-        for quantile in quantiles:
-            q = quantile + np.zeros((X.shape[0], 1))
-            pred = self.model['quantile'].predict([X, q])
-            y.append(pred)
-        return np.hstack(y)
+        X_tiled = np.repeat(X, len(quantiles), axis=1).reshape(-1, 1)
+        q_tiled = np.tile(quantiles, X.shape[0])
+        pred = self.model['quantile'].predict([X_tiled, q_tiled], **predict_kwargs)
+        pred = pred.reshape(X.shape[0], len(quantiles))
+        return pred
 
-    def sample(self, X, num_samples=10, num_quantiles=5):
+    def sample(self, X, num_samples=10, num_quantiles=5, **kwargs):
+        predict_kwargs = dict(
+            batch_size=self.batch_size,
+        )
+        predict_kwargs.update(kwargs)
+
         quantiles = np.linspace(0, 1, num=num_quantiles)
-        predictions = self.predict(X, quantiles=quantiles)
+        predictions = self.predict(X, quantiles=quantiles, **predict_kwargs)
         samples = [
             np.interp(np.random.rand(num_samples), quantiles, pred)
             for pred in predictions
