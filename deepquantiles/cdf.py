@@ -24,7 +24,6 @@ class CDFRegressor(BaseEstimator):
         q_mode='const',
         shuffle_points=True,
         quantiles=[0.5],
-        q_scaling=None
     ):
         self._model_instance = None
         self.feature_units = feature_units
@@ -42,7 +41,6 @@ class CDFRegressor(BaseEstimator):
         self.q_mode = q_mode
         self.shuffle_points = shuffle_points
         self.quantiles = quantiles
-        self.q_scaling = q_scaling
 
     def _model(self):
         input_features = Input(
@@ -137,7 +135,6 @@ class CDFRegressor(BaseEstimator):
             batch_size=batch_size,
             q_mode=q_mode,
             shuffle_points=shuffle_points,
-            q_scaling=self.q_scaling
         )
 
         self.model['loss'].fit_generator(
@@ -150,8 +147,6 @@ class CDFRegressor(BaseEstimator):
             quantiles = self.quantiles
         y = []
         for quantile in quantiles:
-            if self.q_scaling:
-                quantile = self.q_scaling(quantile)
             q = quantile + np.zeros((X.shape[0], 1))
             pred = self.model['quantile'].predict([X, q])
             y.append(pred)
