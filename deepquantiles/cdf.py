@@ -24,6 +24,7 @@ class CDFRegressor(BaseEstimator):
         q_mode='const',
         shuffle_points=True,
         quantiles=[0.5],
+        ada_num_quantiles=10,
     ):
         self._model_instance = None
         self.feature_units = feature_units
@@ -41,6 +42,7 @@ class CDFRegressor(BaseEstimator):
         self.q_mode = q_mode
         self.shuffle_points = shuffle_points
         self.quantiles = quantiles
+        self.ada_num_quantiles = ada_num_quantiles
 
     def _model(self):
         input_features = Input(
@@ -123,20 +125,28 @@ class CDFRegressor(BaseEstimator):
             epochs=self.epochs,
             batch_size=self.batch_size,
             q_mode=self.q_mode,
-            shuffle_points=self.shuffle_points
+            shuffle_points=self.shuffle_points,
+            ada_num_quantiles=self.ada_num_quantiles
         )
         fit_kwargs.update(kwargs)
 
         batch_size = fit_kwargs.pop('batch_size')
         q_mode = fit_kwargs.pop('q_mode')
         shuffle_points = fit_kwargs.pop('shuffle_points')
+        ada_num_quantiles = fit_kwargs.pop('ada_num_quantiles')
+
         gen = XYQZBatchGenerator(
             X, y,
             batch_size=batch_size,
             q_mode=q_mode,
             shuffle_points=shuffle_points,
-            model=self
+            model=self,
+            ada_num_quantiles=ada_num_quantiles
         )
+
+        # weird hack to use predict inside batch gen
+        # see https://github.com/keras-team/keras/issues/5511
+        self.model['quantile'].predict([[0], [0]])
 
         self.model['loss'].fit_generator(
             gen,
