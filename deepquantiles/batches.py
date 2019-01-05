@@ -34,11 +34,11 @@ class XYQZBatchGenerator(Sequence):
             self.y = self.y.reshape((-1, 1))
         if self.x.shape[0] != self.y.shape[0]:
             raise ValueError('X and y must be same length.')
+        # Init q for q_mode in [`const`, `adaptive`]
+        self.q = np.random.rand(*self.y.shape)
         self.batch_size = batch_size
         self.check_q_mode(q_mode)
         self.q_mode = q_mode
-        if q_mode == 'const':
-            self.q = np.random.rand(*self.y.shape)
         self.shuffle_points = shuffle_points
         self.model = model
         self.ada_num_quantiles = ada_num_quantiles
@@ -59,16 +59,23 @@ class XYQZBatchGenerator(Sequence):
         x = self.x[inds, :]
         y = self.y[inds, :]
         z = np.zeros(y.shape)
-        if self.q_mode == 'const':
+        if self.q_mode in ['const', 'adaptive']:
             q = self.q[inds, :]
         elif self.q_mode == 'batch':
             q = z + np.random.rand()
         elif self.q_mode == 'point':
             q = np.random.rand(*z.shape)
-        elif self.q_mode == 'adaptive':
-            y_limits = self.model.predict(x, quantiles=[0., 1.])
+        else:
+            self.check_q_mode()
+        return [x, y, q], z
+
+    def on_epoch_end(self):
+        if self.shuffle_points:
+            np.random.shuffle(self.indices)
+        if self.q_mode == 'adaptive':
             ada_quantiles = np.linspace(0, 1, num=self.ada_num_quantiles)
-            predictions = self.model.predict(x, quantiles=ada_quantiles)
+            y_limits = self.model.predict(self.x, quantiles=[0., 1.])
+            predictions = self.model.predict(self.x, quantiles=ada_quantiles)
             samples = [
                 np.interp(
                     y_min + (y_max - y_min) * np.random.rand(),
@@ -77,11 +84,4 @@ class XYQZBatchGenerator(Sequence):
                 )
                 for (y_min, y_max), inv_cdf in zip(y_limits, predictions)
             ]
-            q = np.array(samples).reshape(*z.shape)
-        else:
-            self.check_q_mode()
-        return [x, y, q], z
-
-    def on_epoch_end(self):
-        if self.shuffle_points:
-            np.random.shuffle(self.indices)
+            self.q = np.array(samples).reshape(*self.y.shape)
