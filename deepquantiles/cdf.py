@@ -135,6 +135,7 @@ class CDFRegressor(BaseEstimator):
             batch_size=batch_size,
             q_mode=q_mode,
             shuffle_points=shuffle_points,
+            model=self
         )
 
         self.model['loss'].fit_generator(
@@ -154,4 +155,9 @@ class CDFRegressor(BaseEstimator):
 
     def sample(self, X, num_samples=10, num_quantiles=5):
         quantiles = np.linspace(0, 1, num=num_quantiles)
-        pass
+        predictions = self.predict(X, quantiles=quantiles)
+        samples = [
+            np.interp(np.random.rand(num_samples), quantiles, pred)
+            for pred in predictions
+        ]
+        return np.vstack(samples)

@@ -90,3 +90,12 @@ class MultiQuantileRegressor(BaseEstimator):
 
     def predict(self, X):
         return np.hstack(self.model.predict(X))
+
+    def sample(self, X, num_samples=10):
+        quantiles = self.quantiles
+        predictions = self.predict(X)
+        samples = [
+            np.interp(np.random.rand(num_samples), quantiles, pred)
+            for pred in predictions
+        ]
+        return np.vstack(samples)

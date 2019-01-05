@@ -9,10 +9,12 @@ class XYQZBatchGenerator(Sequence):
     q are uniform random numbers from [0, 1] and
     z are zeros of the same shape as y.
     """
-    valid_q_modes = ['point', 'batch', 'const']
+    valid_q_modes = ['point', 'batch', 'const', 'adaptive']
 
     @classmethod
     def check_q_mode(cls, q_mode):
+        if q_mode == 'adaptive':
+            raise NotImplementedError('Adaptive q sampling not implemented')
         if q_mode not in cls.valid_q_modes:
             raise ValueError(
                 f'q_mode must be one of {cls.valid_q_modes}'
@@ -20,8 +22,10 @@ class XYQZBatchGenerator(Sequence):
 
     def __init__(
         self, x, y,
-        batch_size=4, q_mode='point',
+        batch_size=4,
+        q_mode='point',
         shuffle_points=True,
+        model=None,
     ):
         self.x = x
         self.y = y
@@ -37,6 +41,8 @@ class XYQZBatchGenerator(Sequence):
         if q_mode == 'const':
             self.q = np.random.rand(*self.y.shape)
         self.shuffle_points = shuffle_points
+        self.model = model
+
         self.indices = np.arange(self.x.shape[0])
         self.n_rows = self.x.shape[0]
 
