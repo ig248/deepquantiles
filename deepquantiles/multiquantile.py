@@ -88,12 +88,22 @@ class MultiQuantileRegressor(BaseEstimator):
             **fit_kwargs
         )
 
-    def predict(self, X):
-        return np.hstack(self.model.predict(X))
+    def predict(self, X, **kwargs):
+        predict_kwargs = dict(
+            batch_size=self.batch_size,
+        )
+        predict_kwargs.update(kwargs)
+        
+        return np.hstack(self.model.predict(X, **predict_kwargs))
 
-    def sample(self, X, num_samples=10):
+    def sample(self, X, num_samples=10, **kwargs):
+        predict_kwargs = dict(
+            batch_size=self.batch_size,
+        )
+        predict_kwargs.update(kwargs)
+
         quantiles = self.quantiles
-        predictions = self.predict(X)
+        predictions = self.predict(X, **predict_kwargs)
         samples = [
             np.interp(np.random.rand(num_samples), quantiles, pred)
             for pred in predictions

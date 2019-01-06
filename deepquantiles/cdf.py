@@ -24,6 +24,7 @@ class CDFRegressor(BaseEstimator):
         q_mode='const',
         shuffle_points=True,
         quantiles=[0.5],
+        ada_num_quantiles=10,
     ):
         self._model_instance = None
         self.feature_units = feature_units
@@ -41,6 +42,7 @@ class CDFRegressor(BaseEstimator):
         self.q_mode = q_mode
         self.shuffle_points = shuffle_points
         self.quantiles = quantiles
+        self.ada_num_quantiles = ada_num_quantiles
 
     def _model(self):
         input_features = Input(
@@ -123,39 +125,59 @@ class CDFRegressor(BaseEstimator):
             epochs=self.epochs,
             batch_size=self.batch_size,
             q_mode=self.q_mode,
-            shuffle_points=self.shuffle_points
+            shuffle_points=self.shuffle_points,
+            ada_num_quantiles=self.ada_num_quantiles
         )
         fit_kwargs.update(kwargs)
 
         batch_size = fit_kwargs.pop('batch_size')
         q_mode = fit_kwargs.pop('q_mode')
         shuffle_points = fit_kwargs.pop('shuffle_points')
-        gen = XYQZBatchGenerator(
+        ada_num_quantiles = fit_kwargs.pop('ada_num_quantiles')
+
+        self.gen_ = XYQZBatchGenerator(
             X, y,
             batch_size=batch_size,
             q_mode=q_mode,
             shuffle_points=shuffle_points,
-            model=self
+            model=self,
+            ada_num_quantiles=ada_num_quantiles
         )
 
+        # weird hack to use predict inside batch gen
+        # see https://github.com/keras-team/keras/issues/5511
+        self.model['quantile'].predict([[0], [0]])
+
         self.model['loss'].fit_generator(
-            gen,
+            self.gen_,
             **fit_kwargs
         )
 
-    def predict(self, X, quantiles=None):
+    def predict(self, X, quantiles=None, **kwargs):
+        predict_kwargs = dict(
+            batch_size=self.batch_size,
+        )
+        predict_kwargs.update(kwargs)
+
         if quantiles is None:
             quantiles = self.quantiles
-        y = []
-        for quantile in quantiles:
-            q = quantile + np.zeros((X.shape[0], 1))
-            pred = self.model['quantile'].predict([X, q])
-            y.append(pred)
-        return np.hstack(y)
+        X_tiled = np.repeat(X, len(quantiles), axis=1).reshape(-1, 1)
+        q_tiled = np.tile(quantiles, X.shape[0])
+        pred = self.model['quantile'].predict(
+            [X_tiled, q_tiled],
+            **predict_kwargs
+        )
+        pred = pred.reshape(X.shape[0], len(quantiles))
+        return pred
 
-    def sample(self, X, num_samples=10, num_quantiles=5):
+    def sample(self, X, num_samples=10, num_quantiles=5, **kwargs):
+        predict_kwargs = dict(
+            batch_size=self.batch_size,
+        )
+        predict_kwargs.update(kwargs)
+
         quantiles = np.linspace(0, 1, num=num_quantiles)
-        predictions = self.predict(X, quantiles=quantiles)
+        predictions = self.predict(X, quantiles=quantiles, **predict_kwargs)
         samples = [
             np.interp(np.random.rand(num_samples), quantiles, pred)
             for pred in predictions
