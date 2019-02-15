@@ -5,7 +5,7 @@ from keras.optimizers import Adam
 from sklearn.base import BaseEstimator
 
 from .batches import XYQZBatchGenerator
-from .losses import QuantileLossLayer
+from .losses import QuantileLossLayer, keras_mean_pred_loss
 
 
 class CDFRegressor(BaseEstimator):
@@ -79,7 +79,7 @@ class CDFRegressor(BaseEstimator):
             [input_features, input_label, input_quantile], loss_output, name='Loss model'
         )
 
-        loss_model.compile(optimizer=Adam(lr=self.lr), loss='mean_absolute_error')
+        loss_model.compile(optimizer=Adam(lr=self.lr), loss=keras_mean_pred_loss)
 
         return {'loss': loss_model, 'quantile': quantile_model}
 

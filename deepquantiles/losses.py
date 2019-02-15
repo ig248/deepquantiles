@@ -33,3 +33,6 @@ def sk_quantile_loss(q, y_true, y_pred):
     err = (y_pred.ravel() - y_true.ravel())
     sign = (err > 0)
     return ((sign - q) * err).mean()
+
+def keras_mean_pred_loss(y_true, y_pred):
+    return K.mean(y_pred)
