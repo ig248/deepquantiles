@@ -4,6 +4,8 @@ import numpy as np
 from keras import backend as K  # noqa
 from keras.layers import Lambda
 
+# Quantiles
+
 
 def _tilted_loss_tensor(q, y_true, y_pred):
     err = (y_pred - y_true)
@@ -34,5 +36,25 @@ def sk_quantile_loss(q, y_true, y_pred):
     sign = (err > 0)
     return ((sign - q) * err).mean()
 
+
+# Mixture Density Networks
+
+
 def keras_mean_pred_loss(y_true, y_pred):
     return K.mean(y_pred)
+
+
+def _mdn_phi_tensor(y_true, mu, sigma):
+    inv_sigma_2 = 1 / K.square(sigma + K.epsilon())
+    phi = inv_sigma_2 * K.exp(-inv_sigma_2 * K.square(y_true - mu))
+    return phi
+
+
+def _mdn_loss_tensor(y_true, w, mu, sigma):
+    """Gaussian mixture loss for 1D output."""
+    phi = _mdn_phi_tensor(y_true, mu, sigma)
+    E = -K.log(K.sum(w * phi, axis=1))
+    return E
+
+
+MDNLossLayer = Lambda(lambda args: _mdn_loss_tensor(*args))
