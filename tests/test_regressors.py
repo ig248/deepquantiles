@@ -2,12 +2,7 @@ import pytest
 
 import numpy as np
 
-from deepquantiles import MultiQuantileRegressor, CDFRegressor
-
-
-@pytest.fixture(scope='module', params=[MultiQuantileRegressor, CDFRegressor])
-def Regressor(request):
-    return request.param
+from deepquantiles import MultiQuantileRegressor, CDFRegressor, MixtureDensityRegressor
 
 
 n = 10
@@ -21,10 +16,15 @@ def Xy():
     return X, y
 
 
-class TestRegressor:
+@pytest.fixture(scope='module', params=[MultiQuantileRegressor, CDFRegressor])
+def QuantileRegressor(request):
+    return request.param
+
+
+class TestQuantileRegressor:
     @pytest.fixture(scope='class')
-    def fitted_model(self, Regressor, Xy):
-        model = Regressor()
+    def fitted_model(self, QuantileRegressor, Xy):
+        model = QuantileRegressor()
         X, y = Xy
         model.fit(X, y, epochs=1, verbose=0)
         return model
@@ -43,3 +43,28 @@ class TestRegressor:
         num_samples = 7
         y_hat = fitted_model.sample(X, num_samples=num_samples)
         assert y_hat.shape == (X.shape[0], num_samples)
+
+
+class TestMDNRegressor:
+
+    n_components = 3
+
+    @pytest.fixture(scope='class')
+    def fitted_model(self, Xy):
+        model = MixtureDensityRegressor(n_components=self.n_components)
+        X, y = Xy
+        model.fit(X, y, epochs=1, verbose=0)
+        return model
+
+    def test_fit(self, fitted_model):
+        pass
+
+    def test_predict(self, fitted_model, Xy):
+        X, y = Xy
+        w, mu, sigma = fitted_model.predict(X)
+        assert w.shape == (y.shape[0], self.n_components)
+        assert mu.shape == (y.shape[0], self.n_components)
+        assert sigma.shape == (y.shape[0], self.n_components)
+
+    def test_sample(self, fitted_model, Xy):
+        pass
