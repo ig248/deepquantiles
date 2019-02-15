@@ -19,10 +19,10 @@ clean:
 	find . | grep -E '(__pycache__|\.pyc|\.pyo$$)' | xargs rm -rf
 
 test:
-	pipenv run pytest --cov=.
+	pipenv run pytest --cov=deepquantiles
 
 test-cov:
-	pipenv run pytest --cov=. --cov-report html --cov-report term
+	pipenv run pytest --cov=deepquantiles --cov-report html --cov-report term
 
 release:
 	python setup.py sdist bdist_wheel

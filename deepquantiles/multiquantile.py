@@ -76,7 +76,7 @@ class MultiQuantileRegressor(BaseEstimator):
         predict_kwargs = dict(batch_size=self.batch_size, )
         predict_kwargs.update(kwargs)
 
-        return np.hstack(self.model.predict(X, **predict_kwargs))
+        return np.hstack(self.model.predict(X, **predict_kwargs)).reshape(X.shape[0], -1)
 
     def sample(self, X, num_samples=10, **kwargs):
         predict_kwargs = dict(batch_size=self.batch_size, )
