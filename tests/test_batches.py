@@ -23,20 +23,15 @@ class TestXYQZBatchGenerator:
     )
     def test_nb_batches(self, n_points, batch_size, expected_nb_batches):
         x, y = x_y_data(n_points)
-        generator = XYQZBatchGenerator(
-            x=x, y=y, batch_size=batch_size
-        )
+        generator = XYQZBatchGenerator(x=x, y=y, batch_size=batch_size)
         assert len(generator) == expected_nb_batches
 
     @pytest.mark.parametrize(
-        'n_points, batch_size, expected_last_batch_size',
-        [(4, 2, 2), (5, 2, 1), (7, 3, 1)]
+        'n_points, batch_size, expected_last_batch_size', [(4, 2, 2), (5, 2, 1), (7, 3, 1)]
     )
     def test_batch_size(self, n_points, batch_size, expected_last_batch_size):
         x_data, y_data = x_y_data(n_points)
-        generator = XYQZBatchGenerator(
-            x=x_data, y=y_data, batch_size=batch_size
-        )
+        generator = XYQZBatchGenerator(x=x_data, y=y_data, batch_size=batch_size)
 
         for batch_id in range(len(generator)):
             [x, y, q], z = generator[batch_id]

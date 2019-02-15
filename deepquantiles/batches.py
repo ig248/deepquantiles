@@ -9,17 +9,18 @@ class XYQZBatchGenerator(Sequence):
     q are uniform random numbers from [0, 1] and
     z are zeros of the same shape as y.
     """
+
     valid_q_modes = ['point', 'batch', 'const', 'adaptive']
 
     @classmethod
     def check_q_mode(cls, q_mode):
         if q_mode not in cls.valid_q_modes:
-            raise ValueError(
-                f'q_mode must be one of {cls.valid_q_modes}'
-            )
+            raise ValueError(f'q_mode must be one of {cls.valid_q_modes}')
 
     def __init__(
-        self, x, y,
+        self,
+        x,
+        y,
         batch_size=4,
         q_mode='point',
         shuffle_points=True,
@@ -47,9 +48,7 @@ class XYQZBatchGenerator(Sequence):
         self.n_rows = self.x.shape[0]
 
     def __len__(self):
-        return self.n_rows // self.batch_size + (
-            1 if self.n_rows % self.batch_size else 0
-        )
+        return self.n_rows // self.batch_size + (1 if self.n_rows % self.batch_size else 0)
 
     def __getitem__(self, item):
         item = item % len(self)
@@ -81,7 +80,6 @@ class XYQZBatchGenerator(Sequence):
                     y_min + (y_max - y_min) * np.random.rand(),
                     inv_cdf,
                     ada_quantiles,
-                )
-                for (y_min, y_max), inv_cdf in zip(y_limits, predictions)
+                ) for (y_min, y_max), inv_cdf in zip(y_limits, predictions)
             ]
             self.q = np.array(samples).reshape(*self.y.shape)

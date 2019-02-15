@@ -7,7 +7,7 @@ from keras.layers import Lambda
 
 def _tilted_loss_tensor(q, y_true, y_pred):
     err = (y_pred - y_true)
-    return K.maximum(- q * err, (1 - q) * err)
+    return K.maximum(-q * err, (1 - q) * err)
 
 
 def _tilted_loss_scalar(q, y_true, y_pred):
@@ -21,14 +21,12 @@ def keras_quantile_loss(q):
     return func
 
 
-QuantileLossLayer = Lambda(
-    lambda args: _tilted_loss_tensor(*args)
-)
+QuantileLossLayer = Lambda(lambda args: _tilted_loss_tensor(*args))
 
 
 def sk_quantile_loss_slow(q, y_true, y_pred):
     err = (y_pred.ravel() - y_true.ravel())
-    return np.maximum(- q * err, (1 - q) * err).mean()
+    return np.maximum(-q * err, (1 - q) * err).mean()
 
 
 def sk_quantile_loss(q, y_true, y_pred):

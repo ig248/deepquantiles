@@ -1,14 +1,14 @@
 import numpy as np
-from sklearn.base import BaseEstimator
-
+from keras.layers import Dense, Input
 from keras.models import Model
-from keras.layers import Input, Dense
 from keras.optimizers import Adam
+from sklearn.base import BaseEstimator
 
 from .losses import keras_quantile_loss
 
 
 class MultiQuantileRegressor(BaseEstimator):
+    """Predict several quantiles simultaneously using a multi-output network."""
 
     def __init__(
         self,
@@ -30,39 +30,26 @@ class MultiQuantileRegressor(BaseEstimator):
         self.batch_size = batch_size
 
     def _model(self):
-        input_features = Input(
-            (1, ),
-            name='X'
-        )
+        input_features = Input((1, ), name='X')
         # append final output
         intermediate = input_features
         for idx, units in enumerate(self.shared_units):
             intermediate = Dense(
-                units=units,
-                activation=self.activation,
-                name=f'dense_{idx}'
+                units=units, activation=self.activation, name=f'dense_{idx}'
             )(intermediate)
         outputs = [intermediate for _ in self.quantiles]
         for idx, units in enumerate(self.quantile_units):
             outputs = [
-                Dense(
-                    units,
-                    activation=self.activation, 
-                    name=f'q_{q}_dense_{idx}'
-                )(output)
+                Dense(units, activation=self.activation, name=f'q_{q}_dense_{idx}')(output)
                 for q, output in zip(self.quantiles, outputs)
             ]
         outputs = [
-            Dense(1, name=f'q_{q}_out')(output)
-            for q, output in zip(self.quantiles, outputs)
+            Dense(1, name=f'q_{q}_out')(output) for q, output in zip(self.quantiles, outputs)
         ]
-        model = Model(
-            input_features, outputs, name='Quantile Regressor'
-        )
+        model = Model(input_features, outputs, name='Quantile Regressor')
 
         model.compile(
-            optimizer=Adam(lr=self.lr),
-            loss=[keras_quantile_loss(q) for q in self.quantiles]
+            optimizer=Adam(lr=self.lr), loss=[keras_quantile_loss(q) for q in self.quantiles]
         )
 
         return model
@@ -83,29 +70,19 @@ class MultiQuantileRegressor(BaseEstimator):
             batch_size=self.batch_size,
         )
         fit_kwargs.update(kwargs)
-        self.model.fit(
-            X, y,
-            **fit_kwargs
-        )
+        self.model.fit(X, y, **fit_kwargs)
 
     def predict(self, X, **kwargs):
-        predict_kwargs = dict(
-            batch_size=self.batch_size,
-        )
+        predict_kwargs = dict(batch_size=self.batch_size, )
         predict_kwargs.update(kwargs)
-        
+
         return np.hstack(self.model.predict(X, **predict_kwargs))
 
     def sample(self, X, num_samples=10, **kwargs):
-        predict_kwargs = dict(
-            batch_size=self.batch_size,
-        )
+        predict_kwargs = dict(batch_size=self.batch_size, )
         predict_kwargs.update(kwargs)
 
         quantiles = self.quantiles
         predictions = self.predict(X, **predict_kwargs)
-        samples = [
-            np.interp(np.random.rand(num_samples), quantiles, pred)
-            for pred in predictions
-        ]
+        samples = [np.interp(np.random.rand(num_samples), quantiles, pred) for pred in predictions]
         return np.vstack(samples)

@@ -5,8 +5,10 @@ dev-install:
 	pipenv install --dev
 
 yapf:
-	pipenv run yapf -vv -ir .
-	pipenv run isort -y
+	pipenv run isort -y deepquantiles/
+	pipenv run yapf -vv -ir deepquantiles/
+	pipenv run isort -y tests/
+	pipenv run yapf -vv -ir tests/
 
 lint:
 	pipenv run flake8 .
