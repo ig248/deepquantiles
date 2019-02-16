@@ -1,7 +1,7 @@
 import numpy as np
 import keras.backend as K  # noqa
 
-from deepquantiles.losses import _mdn_phi_tensor, _mdn_loss_tensor
+from deepquantiles.regressors.losses import _mdn_phi_tensor, _mdn_loss_tensor
 
 n = 1000  # examples
 m = 3  # mixture components

@@ -2,7 +2,7 @@ import pytest
 
 import numpy as np
 
-from deepquantiles.batches import XYQZBatchGenerator
+from deepquantiles.regressors.batches import XYQZBatchGenerator
 
 
 def x_y_data(n_points):
