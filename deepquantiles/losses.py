@@ -53,7 +53,7 @@ def _mdn_phi_tensor(y_true, mu, sigma):
 def _mdn_loss_tensor(y_true, w, mu, sigma):
     """Gaussian mixture loss for 1D output."""
     phi = _mdn_phi_tensor(y_true, mu, sigma)
-    E = -K.log(K.sum(w * phi, axis=1))
+    E = -K.log(K.sum(w * phi, axis=1) + K.epsilon())
     return E
 
 

@@ -3,7 +3,7 @@ import keras.backend as K  # noqa
 
 from deepquantiles.losses import _mdn_phi_tensor, _mdn_loss_tensor
 
-n = 10  # examples
+n = 1000  # examples
 m = 3  # mixture components
 
 
@@ -21,7 +21,11 @@ def test_mdn_loss_1D():
     sigma = K.variable(value=sigma_val)
 
     phi_tensor = _mdn_phi_tensor(y, mu, sigma)
-    assert phi_tensor.shape == (n, m)
-
     loss_tensor = _mdn_loss_tensor(y, w, mu, sigma)
+    assert phi_tensor.shape == (n, m)
     assert loss_tensor.shape == (n, )
+
+    phi = K.eval(phi_tensor)
+    loss = K.eval(loss_tensor)
+    assert np.isfinite(phi).all()
+    assert np.isfinite(loss).all()
