@@ -8,7 +8,7 @@ from .batches import XYQZBatchGenerator
 from .losses import QuantileLossLayer, keras_mean_pred_loss
 
 
-class CDFRegressor(BaseEstimator):
+class InverseCDFRegressor(BaseEstimator):
     """Learn conditional CDF by performing a regression on quantile q."""
 
     def __init__(
@@ -17,7 +17,7 @@ class CDFRegressor(BaseEstimator):
         feature_units=(8, ),
         shared_units=(8, 8),
         activation='relu',
-        batch_norm=False,
+        batch_norm=True,
         lr=0.001,
         epochs=10,
         batch_size=100,
@@ -135,11 +135,11 @@ class CDFRegressor(BaseEstimator):
         pred = pred.reshape(X.shape[0], len(quantiles))
         return pred
 
-    def sample(self, X, num_samples=10, num_quantiles=5, **kwargs):
+    def sample(self, X, num_samples=10, quantiles=None, **kwargs):
         predict_kwargs = dict(batch_size=self.batch_size, )
         predict_kwargs.update(kwargs)
-
-        quantiles = np.linspace(0, 1, num=num_quantiles)
+        if quantiles is None:
+            quantiles = self.quantiles
         predictions = self.predict(X, quantiles=quantiles, **predict_kwargs)
         samples = [np.interp(np.random.rand(num_samples), quantiles, pred) for pred in predictions]
         return np.vstack(samples)

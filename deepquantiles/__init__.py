@@ -1,1 +1,1 @@
-from .regressors import MultiQuantileRegressor, CDFRegressor, MixtureDensityRegressor  # noqa
+from .regressors import MultiQuantileRegressor, InverseCDFRegressor, MixtureDensityRegressor  # noqa

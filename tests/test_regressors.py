@@ -3,7 +3,7 @@ import pytest
 import numpy as np
 import numpy.testing as npt
 
-from deepquantiles import MultiQuantileRegressor, CDFRegressor, MixtureDensityRegressor
+from deepquantiles import MultiQuantileRegressor, InverseCDFRegressor, MixtureDensityRegressor
 
 MDR = MixtureDensityRegressor
 
@@ -18,7 +18,7 @@ def Xy():
     return X, y
 
 
-@pytest.fixture(scope='module', params=[MultiQuantileRegressor, CDFRegressor])
+@pytest.fixture(scope='module', params=[MultiQuantileRegressor, InverseCDFRegressor])
 def QuantileRegressor(request):
     return request.param
 
