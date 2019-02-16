@@ -75,8 +75,8 @@ class TestMDNRegressor:
 
     def test_evaluate_loss(self, unfitted_model, Xy):
         X, y = Xy
-        losses = unfitted_model.model['loss'].evaluate([X, y], y, verbose=0)
-        assert np.isfinite(losses).all()
+        loss = unfitted_model.evaluate(X, y, verbose=0)
+        assert np.isfinite(loss)
 
     def test_fit(self, fitted_model):
         pass

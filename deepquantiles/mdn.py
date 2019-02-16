@@ -86,6 +86,10 @@ class MixtureDensityRegressor(BaseEstimator):
         fit_kwargs.update(kwargs)
         self.model['loss'].fit([X, y], 0 * y, **fit_kwargs)
 
+    def evaluate(self, X, y, **kwargs):
+        loss = self.model['loss'].evaluate([X, y], 0 * y, **kwargs)
+        return loss
+
     def predict(self, X, **kwargs):
         predict_kwargs = dict(batch_size=self.batch_size, )
         predict_kwargs.update(kwargs)
