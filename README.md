@@ -8,11 +8,11 @@ and, more generally, the conditional distribution of the target variable.
 
 ![](https://raw.githubusercontent.com/ig248/deepquantiles/master/README_pics/comparison_good_MDN_good_CDF.png)
 
-This is particularily importent when
+This is particularily important when
 
 - the mean of the target variable is not sufficient for the use case
 - the errors are heteroscedastic, i.e. vary depending on input features
-- the errors are skewed, making a single descriptor such as variance inadequate.
+- the errors are skewed, making a single summary statistic such as variance inadequate.
 
 ![](https://raw.githubusercontent.com/ig248/deepquantiles/master/README_pics/comparison_skewed_samples.png)
 
@@ -24,7 +24,7 @@ Our mixture density network exploits an implementation trick to achieve negative
 
 ![](https://raw.githubusercontent.com/ig248/deepquantiles/master/README_pics/mdn.png)
 
-Same trick is useed to optimize the "pinball" loss in quantile regression networks.
+Same trick is useed to optimize the "pinball" loss in quantile regression networks, and in fact can be used to optimize an arbitrary loss function of `(X, y, y_hat)`.
 
 Within the quantile-based approach, we further explore:
 a. fitting a separate model to predict each quantile
@@ -45,6 +45,11 @@ Or from PyPi:
 ```
 pip install deepquantiles
 ```
+## Usage
+```
+from deepquantiles import MultiQuantileRegressor, InverseCDFRegressor, MixtureDensityRegressor
+```
+As this package is largely an experiment, please explore the Jupyter notebooks and expect to look at the source code.
 
 ## Content
 - `deepqunatiles.regressors`: implementation of core algorithms
@@ -63,3 +68,5 @@ make test
 ```
 
 ## References
+**Mixture Density Networks**, C. M. Bishop, 
+[NCRG/94/004 (1994)](https://publications.aston.ac.uk/373/1/NCRG_94_004.pdf)
