@@ -8,9 +8,10 @@ python_version = "3.6"
 
 [packages]
 tensorflow = '*'
-deepquantiles = {editable = true, path = "."}
+deepquantiles = {editable = true,path = "."}
 
 [dev-packages]
+twine = "*"
 mccabe = '*'
 pep8-naming = '*'
 flake8 = '*'

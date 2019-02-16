@@ -10,7 +10,7 @@ install_requires = [
     'scikit-learn'
 ]
 
-VERSION = '0.0.0'
+VERSION = '0.0.1'
 
 # read the contents of your README file
 this_directory = os.path.abspath(os.path.dirname(__file__))

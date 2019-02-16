@@ -25,5 +25,5 @@ test-cov:
 	pipenv run pytest --cov=deepquantiles --cov-report html --cov-report term
 
 release:
-	python setup.py sdist bdist_wheel
-	twine upload dist/*
+	pipenv run python setup.py sdist bdist_wheel
+	pipenv run twine upload dist/*
