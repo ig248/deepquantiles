@@ -143,3 +143,10 @@ class CDFRegressor(BaseEstimator):
         predictions = self.predict(X, quantiles=quantiles, **predict_kwargs)
         samples = [np.interp(np.random.rand(num_samples), quantiles, pred) for pred in predictions]
         return np.vstack(samples)
+
+    @classmethod
+    def unroll_samples(cls, X, samples):
+        num_samples = samples.shape[1]
+        X = np.repeat(X, num_samples, axis=1).ravel()
+        y = samples.ravel()
+        return X, y
