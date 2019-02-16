@@ -1,8 +1,11 @@
 import pytest
 
 import numpy as np
+import numpy.testing as npt
 
 from deepquantiles import MultiQuantileRegressor, CDFRegressor, MixtureDensityRegressor
+
+MDR = MixtureDensityRegressor
 
 n = 10
 n_features = 1
@@ -52,12 +55,12 @@ class TestMDNRegressor:
 
     @pytest.fixture(scope='class')
     def unfitted_model(self, Xy):
-        model = MixtureDensityRegressor(n_components=self.n_components)
+        model = MDR(n_components=self.n_components)
         return model
 
     @pytest.fixture(scope='class')
     def fitted_model(self, Xy):
-        model = MixtureDensityRegressor(n_components=self.n_components)
+        model = MDR(n_components=self.n_components)
         X, y = Xy
         model.fit(X, y, epochs=1, verbose=0)
         return model
@@ -94,3 +97,36 @@ class TestMDNRegressor:
 
     def test_sample(self, fitted_model, Xy):
         pass
+
+
+w = np.array([[1, 0], [0.5, 0.5], [0, 1]])
+
+mu = np.array([[0, 1], [0, 1], [0, 1]])
+
+sigma = np.array([[1, 1], [2, 2], [0.5, 0.5]])
+
+expected_mean = np.array([[0], [0.5], [1]])
+
+num_examples = w.shape[0]
+
+
+class TestMixtureComputeMethods:
+    """Test convenience methods."""
+
+    def test_mean(self):
+        mean = MDR.compute_mean(mu, w, sigma)
+        npt.assert_equal(mean, expected_mean)
+
+    def test_sample_indicator(self):
+        num_samples = 5
+        row_idx, col_idx = MDR.compute_sample_indicator(w, num_samples)
+        assert row_idx.shape == (num_examples, num_samples)
+        assert col_idx.shape == (num_examples, num_samples)
+        assert (row_idx == np.arange(num_examples).reshape(-1, 1)).all()
+        assert (col_idx[0, :] == 0).all()
+        assert (col_idx[-1, :] == 1).all()
+
+    def test_samples(self):
+        num_samples = 5
+        samples = MDR.compute_samples(w, mu, sigma, num_samples)
+        assert samples.shape == (num_examples, num_samples)

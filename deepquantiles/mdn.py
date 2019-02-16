@@ -1,3 +1,5 @@
+import numpy as np
+
 from keras.layers import Input, Dense
 from keras.models import Model
 from keras.optimizers import Adam
@@ -96,11 +98,42 @@ class MixtureDensityRegressor(BaseEstimator):
         w, mu, sigma = self.model['mdn'].predict(X, **predict_kwargs)
         return w, mu, sigma
 
+    @classmethod
+    def compute_mean(cls, w, mu, sigma):
+        mean = (w * mu).sum(axis=1, keepdims=True)
+        return mean
+
+    @classmethod
+    def compute_sample_indicator(cls, w, num_samples):
+        """Sample indicator variable at each X."""
+        num_examples = w.shape[0]
+        samples = np.random.rand(num_examples, 1, num_samples)
+        thresholds = w.cumsum(axis=1)[:, :, np.newaxis]
+        col_idx = (thresholds > samples).argmax(axis=1)
+        _, row_idx = np.meshgrid(np.arange(num_samples), np.arange(num_examples))
+        return row_idx, col_idx
+
+    @classmethod
+    def compute_samples(cls, w, mu, sigma, num_samples):
+        """Generate samples from the mixture, per row."""
+        row_idx, col_idx = cls.compute_sample_indicator(w, num_samples)
+        mu = mu[row_idx, col_idx]
+        sigma = sigma[row_idx, col_idx]
+        samples = np.random.randn(w.shape[0], num_samples)
+        return mu + sigma * samples
+
+    @classmethod
+    def unroll_samples(cls, X, samples):
+        num_samples = samples.shape[1]
+        X = np.repeat(X, num_samples, axis=1).ravel()
+        y = samples.ravel()
+        return X, y
+
     def predict_mean(self, X, **kwargs):
         w, mu, sigma = self.predict(X, **kwargs)
-        mean = (w * mu).sum(axis=1)
-        return mean
+        return self.compute_mean(w, mu, sigma)
 
     def sample(self, X, num_samples=10, **kwargs):
         w, mu, sigma = self.predict(X, **kwargs)
-        raise NotImplementedError
+        samples = self.compute_samples(w, mu, sigma, num_samples)
+        return samples
