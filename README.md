@@ -4,7 +4,7 @@
 
 # Deep Continuous Quantile Regression
 This package explores different approaches to learning the uncertainty,
-and, more generally, the conditional distribution of the target variable.
+and, more generally, the conditional distribution of the target variable. We introduce a new type of network, the "Deep Continuous Quantile Regression Network", that approximates the inverse conditional CDF directly by a mult-layer perceptron, instead of relying on variational methods which require priors on the functional form of the distribution. In many cases we find that it presents a robust alternative to well-known Mixture Density Networks`.
 
 ![](https://raw.githubusercontent.com/ig248/deepquantiles/master/README_pics/comparison_good_MDN_good_CDF.png)
 
