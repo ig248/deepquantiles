@@ -1,4 +1,4 @@
-from keras.layers import Input, Dense, Softmax
+from keras.layers import Input, Dense
 from keras.models import Model
 from keras.optimizers import Adam
 from sklearn.base import BaseEstimator
@@ -48,8 +48,7 @@ class MixtureDensityRegressor(BaseEstimator):
         for idx, units in enumerate(self.weight_units):
             weight = Dense(units, activation=self.activation, name=f'weight_dense_{idx}')(weight)
 
-        weight = Dense(self.n_components, activation=None, name='weight_pre_output')(weight)
-        weight = Softmax(name='weight_output')(weight)
+        weight = Dense(self.n_components, activation='softmax', name='weight_output')(weight)
 
         for idx, units in enumerate(self.mu_units):
             mu = Dense(units, activation=self.activation, name=f'mu_dense_{idx}')(mu)
@@ -92,6 +91,11 @@ class MixtureDensityRegressor(BaseEstimator):
         predict_kwargs.update(kwargs)
         w, mu, sigma = self.model['mdn'].predict(X, **predict_kwargs)
         return w, mu, sigma
+
+    def predict_mean(self, X, **kwargs):
+        w, mu, sigma = self.predict(X, **kwargs)
+        mean = (w * mu).sum(axis=1)
+        return mean
 
     def sample(self, X, num_samples=10, **kwargs):
         w, mu, sigma = self.predict(X, **kwargs)
