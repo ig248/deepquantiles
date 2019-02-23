@@ -10,7 +10,7 @@ install_requires = [
     'scikit-learn'
 ]
 
-VERSION = '0.0.1'
+VERSION = '0.0.2'
 
 # read the contents of your README file
 this_directory = os.path.abspath(os.path.dirname(__file__))
@@ -21,7 +21,7 @@ setup(
     name='deepquantiles',
     version=VERSION,
     description='Deep Continuous Quantile Regression',
-    url='https://github.com/ig248/deepquantile',
+    url='https://github.com/ig248/deepquantiles',
     long_description=long_description,
     long_description_content_type='text/markdown',
     packages=find_packages(exclude=('tests', )),

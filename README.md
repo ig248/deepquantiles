@@ -63,3 +63,5 @@ make test
 ```
 
 ## References
+
+**Mixture Density Networks**, Christopher M. Bishop, [NCRG/94/004 (1994)](https://publications.aston.ac.uk/373/1/NCRG_94_004.pdf)
